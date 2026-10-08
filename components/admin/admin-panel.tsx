@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useAuth } from '@/components/auth-provider'
 import { AdminDirect } from '@/components/admin/admin-direct'
 import { AdminEmployes } from '@/components/admin/admin-employes'
 import { AdminHeures } from '@/components/admin/admin-heures'
@@ -23,22 +24,26 @@ const ONGLETS = [
 type Onglet = (typeof ONGLETS)[number]['id']
 
 export function AdminPanel() {
-  const [onglet, setOnglet] = useState<Onglet>('direct')
+  const { employe } = useAuth()
+  const estSousAdmin = employe?.role === 'sous_admin'
+  const [onglet, setOnglet] = useState<Onglet>(estSousAdmin ? 'heures' : 'direct')
+  const ongletsVisibles = estSousAdmin ? ONGLETS.filter((o) => o.id === 'heures') : ONGLETS
+  const ongletActif = estSousAdmin ? 'heures' : onglet
 
   return (
     <div className="flex flex-col gap-4">
       <h1 className="font-display text-3xl font-bold uppercase">Administration</h1>
       <div role="tablist" aria-label="Sections d’administration" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-        {ONGLETS.map((o) => (
+        {ongletsVisibles.map((o) => (
           <button
             key={o.id}
             type="button"
             role="tab"
-            aria-selected={onglet === o.id}
+            aria-selected={ongletActif === o.id}
             onClick={() => setOnglet(o.id)}
             className={cn(
               'h-11 shrink-0 rounded-full px-4 text-sm font-semibold transition',
-              onglet === o.id ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground',
+              ongletActif === o.id ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground',
             )}
           >
             {o.label}
@@ -46,13 +51,13 @@ export function AdminPanel() {
         ))}
       </div>
       <div role="tabpanel">
-        {onglet === 'direct' && <AdminDirect />}
-        {onglet === 'notifications' && <AdminNotifications />}
-        {onglet === 'photos' && <AdminPhotos />}
-        {onglet === 'punchs' && <AdminPunchs />}
-        {onglet === 'heures' && <AdminHeures />}
-        {onglet === 'jobs' && <AdminJobs />}
-        {onglet === 'employes' && <AdminEmployes />}
+        {ongletActif === 'direct' && <AdminDirect />}
+        {ongletActif === 'notifications' && <AdminNotifications />}
+        {ongletActif === 'photos' && <AdminPhotos />}
+        {ongletActif === 'punchs' && <AdminPunchs />}
+        {ongletActif === 'heures' && <AdminHeures />}
+        {ongletActif === 'jobs' && <AdminJobs />}
+        {ongletActif === 'employes' && <AdminEmployes />}
       </div>
     </div>
   )
