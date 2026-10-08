@@ -56,7 +56,7 @@ export function Historique() {
             className="h-12 w-full rounded-xl border border-border bg-card px-3 text-foreground"
           >
             <option value="">Mes punchs ({employe?.nom ?? "Moi"})</option>
-            {(employes ?? []).map(e => (
+            {(employes ?? []).filter(e => String(e.id) !== String(employe?.id)).map(e => (
               <option key={String(e.id)} value={String(e.id)}>{e.nom ?? 'Employé sans nom'}</option>
             ))}
           </select>
