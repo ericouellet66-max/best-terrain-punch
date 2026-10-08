@@ -6,21 +6,25 @@ import { useAuth } from '@/components/auth-provider'
 import { NavigateurSemaine, semaineCourante } from '@/components/navigateur-semaine'
 import { Chargement, MessageErreur } from '@/components/ui-terrain'
 import { chargerPunchs, nomJob } from '@/lib/donnees'
-import { useJobs } from '@/lib/hooks'
+import { useEmployes, useJobs } from '@/lib/hooks'
 import { calculerSegments, LIBELLES_PUNCH, totalSegments, totauxParJour } from '@/lib/punch'
 import { ajouterJours, cleJour, debutJour, duree, heure, joursDeSemaine, libelleJour } from '@/lib/temps'
 import { EMPLOYEURS, type Employeur, type Punch } from '@/lib/types'
 
 export function Historique() {
-  const { employe } = useAuth()
+  const { employe, estAdmin } = useAuth()
+  const { data: employes } = useEmployes()
+  const [employeChoisi, setEmployeChoisi] = useState<string>('')
+  const idHistorique = estAdmin && employeChoisi ? employeChoisi : employe?.id
+  const nomHistorique = employes?.find(e => String(e.id) === String(idHistorique))?.nom
   const [dimanche, setDimanche] = useState(semaineCourante)
   const [employeur, setEmployeur] = useState<Employeur>('best')
   const { data: jobs } = useJobs(false)
   const { data: punchs, error, isLoading } = useSWR(
-    employe ? ['punchs-historique', String(employe.id), dimanche] : null,
+    idHistorique != null ? ['punchs-historique', String(idHistorique), dimanche] : null,
     () =>
       chargerPunchs({
-        employeId: employe!.id,
+        employeId: idHistorique,
         depuis: debutJour(dimanche),
         jusqua: debutJour(ajouterJours(dimanche, 7)),
       }),
@@ -41,7 +45,24 @@ export function Historique() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="font-display text-3xl font-bold uppercase">Mon historique</h1>
+      <h1 className="font-display text-3xl font-bold uppercase">{estAdmin ? 'Historique des punchs' : 'Mon historique'}</h1>
+      {estAdmin && (
+        <label className="flex flex-col gap-2 text-sm font-semibold">
+          Choisir un employé
+          <select
+            aria-label="Choisir un employé"
+            value={employeChoisi}
+            onChange={(e) => setEmployeChoisi(e.target.value)}
+            className="h-12 w-full rounded-xl border border-border bg-card px-3 text-foreground"
+          >
+            <option value="">Mes punchs</option>
+            {(employes ?? []).map(e => (
+              <option key={String(e.id)} value={String(e.id)}>{e.nom ?? 'Employé sans nom'}</option>
+            ))}
+          </select>
+        </label>
+      )}
+      {estAdmin && <p className="text-sm text-muted-foreground">Historique de : {nomHistorique ?? employe?.nom ?? 'Moi'}</p>}
       <div className="grid grid-cols-2 gap-2">{(Object.keys(EMPLOYEURS) as Employeur[]).map(k => <button key={k} onClick={() => setEmployeur(k)} className={`rounded-xl border-2 p-3 text-sm font-semibold ${employeur === k ? 'border-primary bg-primary/15' : 'border-border'}`}>{EMPLOYEURS[k]}</button>)}</div>
       <NavigateurSemaine dimanche={dimanche} onChanger={setDimanche} />
 
