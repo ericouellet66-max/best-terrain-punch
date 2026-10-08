@@ -13,6 +13,7 @@ import { EMPLOYEURS, type Employeur, type Punch } from '@/lib/types'
 
 export function Historique() {
   const { employe, estAdmin } = useAuth()
+  const estSousAdmin = employe?.role === 'sous_admin'
   const { data: employes } = useEmployes()
   const [employeChoisi, setEmployeChoisi] = useState<string>('')
   const idHistorique = estAdmin && employeChoisi ? employeChoisi : employe?.id
@@ -63,7 +64,7 @@ export function Historique() {
         </label>
       )}
       {estAdmin && <p className="text-sm text-muted-foreground">Historique de : {nomHistorique ?? employe?.nom ?? 'Moi'}</p>}
-      <div className="grid grid-cols-2 gap-2">{(Object.keys(EMPLOYEURS) as Employeur[]).map(k => <button key={k} onClick={() => setEmployeur(k)} className={`rounded-xl border-2 p-3 text-sm font-semibold ${employeur === k ? 'border-primary bg-primary/15' : 'border-border'}`}>{EMPLOYEURS[k]}</button>)}</div>
+      <div className="grid grid-cols-2 gap-2">{(estSousAdmin ? ['best'] as Employeur[] : Object.keys(EMPLOYEURS) as Employeur[]).map(k => <button key={k} onClick={() => setEmployeur(k)} className={`rounded-xl border-2 p-3 text-sm font-semibold ${employeur === k ? 'border-primary bg-primary/15' : 'border-border'}`}>{EMPLOYEURS[k]}</button>)}</div>
       <NavigateurSemaine dimanche={dimanche} onChanger={setDimanche} />
 
       <div className="flex items-center justify-between rounded-2xl bg-primary p-4 text-primary-foreground">
