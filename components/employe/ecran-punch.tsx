@@ -173,7 +173,7 @@ export function EcranPunch() {
     ? employes?.find(e => String(e.id) === employeSelectionne) ?? employe
     : employe
   const { data: punchs, error, isLoading, mutate } = usePunchsRecents(personne?.id)
-  const { data: jobs } = useJobs(true)
+  const { data: jobs, error: erreurJobs, isLoading: chargementJobs } = useJobs(true)
   const { data: tousJobs } = useJobs(false)
 
   const [employeur, setEmployeur] = useState<Employeur>('best')
@@ -189,12 +189,16 @@ export function EcranPunch() {
   const [photoEnvoi, setPhotoEnvoi] = useState<'debut' | 'fin' | null>(null)
 
   const employeurActif = useMemo(() => {
-    const dernier = [...(punchs ?? [])].sort((a,b) => a.horodatage.localeCompare(b.horodatage)).at(-1)
-    return dernier && calculerEtat((punchs ?? []).filter(p => p.employeur === dernier.employeur)).etat !== 'non_punche' ? dernier.employeur : null
+    // Ne pas verrouiller sur un ancien punch terminé ou un punch d'un autre employé.
+    const groupes: Employeur[] = ['best', 'ferme']
+    for (const groupe of groupes) {
+      if (calculerEtat((punchs ?? []).filter(p => (p.employeur ?? 'best') === groupe)).etat !== 'non_punche') return groupe
+    }
+    return null
   }, [punchs])
   const employeurSelectionne = employeurActif ?? employeur
   const punchsEmployeur = useMemo(() => (punchs ?? []).filter(p => p.employeur === employeurSelectionne), [punchs, employeurSelectionne])
-  const jobsEmployeur = useMemo(() => (jobs ?? []).filter(j => j.employeur === employeurSelectionne), [jobs, employeurSelectionne])
+  const jobsEmployeur = useMemo(() => (jobs ?? []).filter(j => (j.employeur ?? 'best') === employeurSelectionne), [jobs, employeurSelectionne])
   const etat = useMemo(() => calculerEtat(punchsEmployeur), [punchsEmployeur])
   const permises = actionsPermises(etat)
   const heuresAujourdhui = useMemo(
@@ -278,7 +282,7 @@ export function EcranPunch() {
         <section className="rounded-2xl border border-primary/50 bg-card p-4">
           <label htmlFor="admin-employe-punch" className="mb-2 block font-bold">Qui veux-tu puncher ?</label>
           <select id="admin-employe-punch" value={employeSelectionne}
-            onChange={e => { setEmployeSelectionne(e.target.value); setJobArrivee(''); setNouveauJob(''); setErreur(null) }}
+            onChange={e => { setEmployeSelectionne(e.target.value); setEmployeur('best'); setJobArrivee(''); setNouveauJob(''); setErreur(null) }}
             className="min-h-14 w-full rounded-xl border border-border bg-secondary px-3 text-lg font-semibold">
             <option value="">Moi-même ({employe.nom})</option>
             {(employes ?? []).filter(e => e.actif && String(e.id) !== String(employe.id)).map(e =>
@@ -326,7 +330,7 @@ export function EcranPunch() {
       {etat.etat === 'non_punche' && (
         <section aria-labelledby="titre-job" className="flex flex-col gap-3 rounded-2xl border border-primary/50 bg-card p-4">
           <h2 id="titre-job" className="font-display text-2xl font-bold uppercase">Sur quel job?</h2>
-          {jobs ? <ListeJobs jobs={jobsEmployeur} selection={jobArrivee} onChoisir={setJobArrivee} /> : <Chargement />}
+          {erreurJobs ? <MessageErreur>Impossible de charger les jobs : {(erreurJobs as Error).message}. Vérifiez que la migration Ferme a été exécutée dans Supabase.</MessageErreur> : chargementJobs ? <Chargement /> : jobsEmployeur.length === 0 ? <p className="text-sm text-muted-foreground">Aucun job actif pour {EMPLOYEURS[employeurSelectionne]}. {jobs?.length ? `${jobs.length} job(s) actif(s) existent pour l'autre employeur. Vérifiez l'employeur attribué dans Administration → Jobs.` : 'Vérifiez les jobs dans Administration → Jobs.'}</p> : <ListeJobs jobs={jobsEmployeur} selection={jobArrivee} onChoisir={setJobArrivee} />}
         </section>
       )}
 
