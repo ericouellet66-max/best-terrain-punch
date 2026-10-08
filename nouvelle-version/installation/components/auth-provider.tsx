@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         employe,
         chargementProfil: Boolean(uid) && isLoading,
         erreurProfil: error ? (error as Error).message : null,
-        estAdmin: employe?.role === 'admin' && employe.actif,
+        estAdmin: (employe?.role === 'admin' || employe?.role === 'sous_admin') && employe.actif,
         deconnexion,
       }}
     >

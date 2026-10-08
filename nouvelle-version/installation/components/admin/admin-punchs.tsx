@@ -30,7 +30,8 @@ interface Brouillon {
 }
 
 export function AdminPunchs() {
-  const { session } = useAuth()
+  const { session, employe: moi } = useAuth()
+  const restreint = moi?.role === 'sous_admin'
   const { data: employes } = useEmployes()
   const { data: jobs } = useJobs(false)
   const aujourdhui = cleJour(new Date())
@@ -43,9 +44,9 @@ export function AdminPunchs() {
   const [erreur, setErreur] = useState<string | null>(null)
   const [envoi, setEnvoi] = useState(false)
 
-  const { data: punchs, error, isLoading } = useSWR(['punchs-admin', entreprise, employeId, jobId, du, au], () =>
+  const { data: punchs, error, isLoading } = useSWR(['punchs-admin', entreprise, restreint, employeId, jobId, du, au], () =>
     chargerPunchs({
-      employeur: entreprise === 'toutes' ? undefined : entreprise,
+      employeur: restreint ? 'best' : entreprise === 'toutes' ? undefined : entreprise,
       employeId: employeId || undefined,
       jobId: jobId || undefined,
       depuis: debutJour(du),
@@ -54,7 +55,7 @@ export function AdminPunchs() {
     }),
   )
 
-  const jobsVisibles = (jobs ?? []).filter(j => entreprise === 'toutes' || j.employeur === entreprise)
+  const jobsVisibles = (jobs ?? []).filter(j => restreint ? j.employeur === 'best' : entreprise === 'toutes' || j.employeur === entreprise)
 
   function ouvrir(p?: Punch) {
     setErreur(null)
@@ -139,7 +140,7 @@ export function AdminPunchs() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-2" aria-label="Filtrer par entreprise">
+      {!restreint && <div className="grid grid-cols-3 gap-2" aria-label="Filtrer par entreprise">
         {([['best', 'B.E.S.T. Terrain'], ['ferme', 'Ferme'], ['toutes', 'Toutes']] as const).map(([valeur, titre]) => (
           <button key={valeur} type="button" onClick={() => { setEntreprise(valeur); setJobId('') }}
             aria-pressed={entreprise === valeur}
@@ -147,7 +148,7 @@ export function AdminPunchs() {
             {titre}
           </button>
         ))}
-      </div>
+      </div>}
       <div className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card p-3">
         <Champ label="Employé">
           <select value={employeId} onChange={(e) => setEmployeId(e.target.value)} className={classeChamp}>

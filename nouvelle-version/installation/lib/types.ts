@@ -1,6 +1,6 @@
 export type Id = string | number
 
-export type Role = 'employe' | 'admin'
+export type Role = 'employe' | 'admin' | 'sous_admin'
 export type Employeur = 'best' | 'ferme'
 export const EMPLOYEURS: Record<Employeur, string> = { best: 'Entretien B.E.S.T. Terrain', ferme: 'Ferme Denis St-Pierre' }
 
@@ -11,6 +11,7 @@ export interface Employe {
   courriel: string | null
   telephone: string | null
   role: Role
+  employeur: Employeur
   actif: boolean
 }
 

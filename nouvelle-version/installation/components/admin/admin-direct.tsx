@@ -2,6 +2,7 @@
 
 import { RefreshCw } from 'lucide-react'
 import { useMemo } from 'react'
+import { useAuth } from '@/components/auth-provider'
 import useSWR from 'swr'
 import { BoutonSecondaire, Chargement, MessageErreur } from '@/components/ui-terrain'
 import { chargerPunchs, nomJob } from '@/lib/donnees'
@@ -11,11 +12,13 @@ import { duree, heure } from '@/lib/temps'
 import { cn } from '@/lib/utils'
 
 export function AdminDirect() {
+  const { employe: moi } = useAuth()
+  const restreint = moi?.role === 'sous_admin'
   const { data: employes, isLoading: chargeEmp } = useEmployes()
   const { data: jobs } = useJobs(false)
   const { data: punchs, error, isLoading, mutate } = useSWR(
-    ['punchs-direct'],
-    () => chargerPunchs({ depuis: new Date(Date.now() - 24 * 3600 * 1000) }),
+    ['punchs-direct', restreint],
+    () => chargerPunchs({ employeur: restreint ? 'best' : undefined, depuis: new Date(Date.now() - 24 * 3600 * 1000) }),
     { refreshInterval: 30_000 },
   )
 

@@ -1,0 +1,20 @@
+B.E.S.T. TERRAIN PUNCH — Sous-administratrice Nathalie
+
+CONTENU
+- Application : interface sous-administratrice, sans onglet Jobs ni filtre Ferme.
+- Supabase : supabase/migration-sous-admin-nathalie.sql (permissions côté base).
+
+ATTENTION AVANT INSTALLATION
+1. Sauvegarder la base Supabase et confirmer la version de la base.
+2. Vérifier que la fiche Nathalie est unique, active et reliée à son compte Supabase Auth.
+3. Vérifier quels employés appartiennent à la Ferme : la nouvelle colonne employeur
+   utilise « best » par défaut pour préserver la compatibilité. Il faudra marquer
+   les employés de la Ferme « ferme » avec le compte administrateur principal.
+4. Faire réviser/tester le SQL et les politiques RLS actuelles sur une base de test.
+5. Exécuter la migration SQL dans Supabase, puis publier la nouvelle version du code.
+6. Tester avec les deux comptes : Éric voit les deux entreprises, Nathalie seulement B.E.S.T.
+   Tester la lecture ET la modification directe (API), ainsi que les photos/notifications.
+7. Ne pas relancer le fichier historique supabase/schema.sql après la migration :
+   il contient une instruction qui redonne le rôle admin à Nathalie.
+
+La migration n'a PAS été exécutée et cette archive n'est PAS publiée.

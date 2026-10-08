@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useAuth } from '@/components/auth-provider'
 import useSWR from 'swr'
 import { NavigateurSemaine, semaineCourante } from '@/components/navigateur-semaine'
 import { Chargement, MessageErreur } from '@/components/ui-terrain'
@@ -10,7 +11,10 @@ import { calculerSegments, grouperParEmploye, totalSegments, totauxParJour } fro
 import { ajouterJours, debutJour, duree, heuresDecimales, joursDeSemaine, libelleJour } from '@/lib/temps'
 
 export function AdminHeures() {
-  const [employeur, setEmployeur] = useState<'best'|'ferme'>('best')
+  const { employe: moi } = useAuth()
+  const restreint = moi?.role === 'sous_admin'
+  const [entrepriseChoisie, setEmployeur] = useState<'best'|'ferme'>('best')
+  const employeur = restreint ? 'best' : entrepriseChoisie
   const [dimanche, setDimanche] = useState(semaineCourante)
   const { data: employes } = useEmployes()
   // Inclut la veille pour qu'un quart commencé samedi soir soit bien reconstruit.
@@ -35,7 +39,7 @@ export function AdminHeures() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-2"><button onClick={() => setEmployeur('best')} className={`rounded-xl border-2 p-3 ${employeur==='best'?'border-primary bg-primary/15':'border-border'}`}>B.E.S.T. Terrain</button><button onClick={() => setEmployeur('ferme')} className={`rounded-xl border-2 p-3 ${employeur==='ferme'?'border-primary bg-primary/15':'border-border'}`}>Ferme Denis St-Pierre</button></div>
+      {!restreint && <div className="grid grid-cols-2 gap-2"><button onClick={() => setEmployeur('best')} className={`rounded-xl border-2 p-3 ${employeur==='best'?'border-primary bg-primary/15':'border-border'}`}>B.E.S.T. Terrain</button><button onClick={() => setEmployeur('ferme')} className={`rounded-xl border-2 p-3 ${employeur==='ferme'?'border-primary bg-primary/15':'border-border'}`}>Ferme Denis St-Pierre</button></div>}
       <NavigateurSemaine dimanche={dimanche} onChanger={setDimanche} />
       <div className="flex items-center justify-between rounded-2xl bg-primary p-4 text-primary-foreground">
         <p className="font-display text-xl font-bold uppercase">Total équipe</p>

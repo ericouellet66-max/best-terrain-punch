@@ -26,6 +26,7 @@ const vide: Brouillon = { nom: '', courriel: '', telephone: '', role: 'employe',
 
 export function AdminEmployes() {
   const { employe: moi } = useAuth()
+  const restreint = moi?.role === 'sous_admin'
   const { data: employes, error, isLoading } = useEmployes()
   const [brouillon, setBrouillon] = useState<Brouillon | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
@@ -35,6 +36,7 @@ export function AdminEmployes() {
   function ouvrir(e?: Employe) {
     setErreur(null)
     setSucces(null)
+    if (restreint && !e) return
     setBrouillon(
       e
         ? {
@@ -54,6 +56,7 @@ export function AdminEmployes() {
   async function soumettre(ev: React.FormEvent) {
     ev.preventDefault()
     if (!brouillon) return
+    if (restreint && (brouillon.id == null || brouillon.role !== 'employe')) return setErreur('Modification non autorisée.')
     const estMoi = brouillon.id != null && String(brouillon.id) === String(moi?.id)
     if (estMoi && (brouillon.role !== 'admin' || !brouillon.actif)) {
       return setErreur('Vous ne pouvez pas retirer vos propres droits administrateur.')
@@ -67,8 +70,7 @@ export function AdminEmployes() {
             nom: brouillon.nom.trim(),
             courriel: brouillon.courriel.trim().toLowerCase() || null,
             telephone: brouillon.telephone.trim() || null,
-            role: brouillon.role,
-            actif: brouillon.actif,
+            ...(!restreint ? { role: brouillon.role, actif: brouillon.actif } : {}),
           },
           brouillon.id,
         )
@@ -108,14 +110,15 @@ export function AdminEmployes() {
 
   return (
     <div className="flex flex-col gap-3">
-      <BoutonPrincipal onClick={() => ouvrir()}>
+      {!restreint && <BoutonPrincipal onClick={() => ouvrir()}>
         <UserPlus className="size-5" aria-hidden="true" />
         Créer un employé
-      </BoutonPrincipal>
+      </BoutonPrincipal>}
+      {restreint && <p className="text-sm text-muted-foreground">Accès B.E.S.T. Terrain : modification des coordonnées des employés seulement.</p>}
       {succes && <p role="status" className="rounded-lg bg-success/15 px-4 py-3 text-sm font-medium text-success">{succes}</p>}
       {error && <MessageErreur>{(error as Error).message}</MessageErreur>}
       <ul className="flex flex-col gap-2">
-        {employes?.map((e) => (
+        {employes?.filter(e => !restreint || (e.employeur === 'best' && e.role === 'employe')).map((e) => (
           <li key={String(e.id)}>
             <button
               type="button"
@@ -128,7 +131,7 @@ export function AdminEmployes() {
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1 text-xs font-semibold">
                 <span className={e.role === 'admin' ? 'text-primary' : 'text-muted-foreground'}>
-                  {e.role === 'admin' ? 'Admin' : 'Employé'}
+                  {e.role === 'admin' ? 'Admin' : e.role === 'sous_admin' ? 'Sous-admin' : 'Employé'}
                 </span>
                 {!e.actif && <span className="text-destructive">Inactif</span>}
                 {!e.user_id && e.actif && <span className="text-muted-foreground">Sans compte</span>}
@@ -161,12 +164,13 @@ export function AdminEmployes() {
             <Champ label="Téléphone">
               <input type="tel" value={brouillon.telephone} onChange={(e) => setBrouillon({ ...brouillon, telephone: e.target.value })} className={classeChamp} />
             </Champ>
-            <Champ label="Rôle">
+            {!restreint && <Champ label="Rôle">
               <select value={brouillon.role} onChange={(e) => setBrouillon({ ...brouillon, role: e.target.value as Role })} className={classeChamp}>
                 <option value="employe">Employé</option>
                 <option value="admin">Administrateur</option>
+                <option value="sous_admin">Sous-administrateur B.E.S.T.</option>
               </select>
-            </Champ>
+            </Champ>}
             {brouillon.id == null ? (
               <>
                 <Champ label="Mot de passe temporaire" aide="Au moins 8 caractères.">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useAuth } from '@/components/auth-provider'
 import { AdminDirect } from '@/components/admin/admin-direct'
 import { AdminEmployes } from '@/components/admin/admin-employes'
 import { AdminHeures } from '@/components/admin/admin-heures'
@@ -24,12 +25,15 @@ type Onglet = (typeof ONGLETS)[number]['id']
 
 export function AdminPanel() {
   const [onglet, setOnglet] = useState<Onglet>('direct')
+  const { employe } = useAuth()
+  const restreint = employe?.role === 'sous_admin'
+  const ongletsVisibles = ONGLETS.filter(o => !restreint || o.id !== 'jobs')
 
   return (
     <div className="flex flex-col gap-4">
       <h1 className="font-display text-3xl font-bold uppercase">Administration</h1>
       <div role="tablist" aria-label="Sections d’administration" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-        {ONGLETS.map((o) => (
+        {ongletsVisibles.map((o) => (
           <button
             key={o.id}
             type="button"
@@ -51,7 +55,7 @@ export function AdminPanel() {
         {onglet === 'photos' && <AdminPhotos />}
         {onglet === 'punchs' && <AdminPunchs />}
         {onglet === 'heures' && <AdminHeures />}
-        {onglet === 'jobs' && <AdminJobs />}
+        {onglet === 'jobs' && !restreint && <AdminJobs />}
         {onglet === 'employes' && <AdminEmployes />}
       </div>
     </div>
