@@ -24,10 +24,10 @@ const ONGLETS = [
 type Onglet = (typeof ONGLETS)[number]['id']
 
 export function AdminPanel() {
-  const [onglet, setOnglet] = useState<Onglet>('direct')
+  const [onglet, setOnglet] = useState<Onglet>('heures')
   const { employe } = useAuth()
   const restreint = employe?.role === 'sous_admin'
-  const ongletsVisibles = ONGLETS.filter(o => !restreint || o.id !== 'jobs')
+  const ongletsVisibles = ONGLETS.filter(o => !restreint || ['punchs', 'heures'].includes(o.id))
 
   return (
     <div className="flex flex-col gap-4">
