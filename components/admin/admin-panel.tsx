@@ -26,9 +26,9 @@ type Onglet = (typeof ONGLETS)[number]['id']
 export function AdminPanel() {
   const { employe } = useAuth()
   const estSousAdmin = employe?.role === 'sous_admin'
-  const [onglet, setOnglet] = useState<Onglet>(estSousAdmin ? 'heures' : 'direct')
-  const ongletsVisibles = estSousAdmin ? ONGLETS.filter((o) => o.id === 'heures') : ONGLETS
-  const ongletActif = estSousAdmin ? 'heures' : onglet
+  const [onglet, setOnglet] = useState<Onglet>('direct')
+  const ongletsVisibles = estSousAdmin ? ONGLETS.filter((o) => o.id === 'direct' || o.id === 'heures') : ONGLETS
+  const ongletActif = estSousAdmin && onglet !== 'direct' && onglet !== 'heures' ? 'direct' : onglet
 
   return (
     <div className="flex flex-col gap-4">
