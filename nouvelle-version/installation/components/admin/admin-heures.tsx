@@ -14,8 +14,8 @@ export function AdminHeures() {
   const [dimanche, setDimanche] = useState(semaineCourante)
   const { data: employes } = useEmployes()
   // Inclut la veille pour qu'un quart commencé samedi soir soit bien reconstruit.
-  const { data: punchs, error, isLoading } = useSWR(['punchs-heures', dimanche], () =>
-    chargerPunchs({ depuis: debutJour(ajouterJours(dimanche, -1)), jusqua: debutJour(ajouterJours(dimanche, 7)) }),
+  const { data: punchs, error, isLoading } = useSWR(['punchs-heures', dimanche, employeur], () =>
+    chargerPunchs({ employeur, depuis: debutJour(ajouterJours(dimanche, -1)), jusqua: debutJour(ajouterJours(dimanche, 7)) }),
   )
   const jours = joursDeSemaine(dimanche)
 

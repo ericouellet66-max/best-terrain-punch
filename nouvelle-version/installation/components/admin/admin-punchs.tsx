@@ -34,6 +34,7 @@ export function AdminPunchs() {
   const { data: employes } = useEmployes()
   const { data: jobs } = useJobs(false)
   const aujourdhui = cleJour(new Date())
+  const [entreprise, setEntreprise] = useState<'best' | 'ferme' | 'toutes'>('best')
   const [employeId, setEmployeId] = useState('')
   const [jobId, setJobId] = useState('')
   const [du, setDu] = useState(ajouterJours(aujourdhui, -6))
@@ -42,8 +43,9 @@ export function AdminPunchs() {
   const [erreur, setErreur] = useState<string | null>(null)
   const [envoi, setEnvoi] = useState(false)
 
-  const { data: punchs, error, isLoading } = useSWR(['punchs-admin', employeId, jobId, du, au], () =>
+  const { data: punchs, error, isLoading } = useSWR(['punchs-admin', entreprise, employeId, jobId, du, au], () =>
     chargerPunchs({
+      employeur: entreprise === 'toutes' ? undefined : entreprise,
       employeId: employeId || undefined,
       jobId: jobId || undefined,
       depuis: debutJour(du),
@@ -51,6 +53,8 @@ export function AdminPunchs() {
       ordre: 'desc',
     }),
   )
+
+  const jobsVisibles = (jobs ?? []).filter(j => entreprise === 'toutes' || j.employeur === entreprise)
 
   function ouvrir(p?: Punch) {
     setErreur(null)
@@ -135,6 +139,15 @@ export function AdminPunchs() {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-3 gap-2" aria-label="Filtrer par entreprise">
+        {([['best', 'B.E.S.T. Terrain'], ['ferme', 'Ferme'], ['toutes', 'Toutes']] as const).map(([valeur, titre]) => (
+          <button key={valeur} type="button" onClick={() => { setEntreprise(valeur); setJobId('') }}
+            aria-pressed={entreprise === valeur}
+            className={`rounded-xl border-2 p-3 text-sm font-semibold ${entreprise === valeur ? 'border-primary bg-primary/15' : 'border-border'}`}>
+            {titre}
+          </button>
+        ))}
+      </div>
       <div className="grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card p-3">
         <Champ label="Employé">
           <select value={employeId} onChange={(e) => setEmployeId(e.target.value)} className={classeChamp}>
@@ -147,7 +160,7 @@ export function AdminPunchs() {
         <Champ label="Job">
           <select value={jobId} onChange={(e) => setJobId(e.target.value)} className={classeChamp}>
             <option value="">Tous</option>
-            {jobs?.map((j) => (
+            {jobsVisibles.map((j) => (
               <option key={String(j.id)} value={String(j.id)}>{j.nom}</option>
             ))}
           </select>
@@ -246,7 +259,7 @@ export function AdminPunchs() {
                 className={classeChamp}
               >
                 <option value="">Aucun</option>
-                {jobs?.map((j) => (
+                {jobsVisibles.map((j) => (
                   <option key={String(j.id)} value={String(j.id)}>
                     {j.nom}
                     {!j.actif && ' (inactif)'}
