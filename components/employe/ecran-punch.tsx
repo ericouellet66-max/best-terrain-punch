@@ -168,6 +168,7 @@ function ConfirmationPunch({ confirmation, onFermer }: { confirmation: Confirmat
 export function EcranPunch() {
   const { employe, estAdmin, session } = useAuth()
   const { data: employes } = useEmployes()
+  const estSousAdmin = employe?.role === 'sous_admin'
   const [employeSelectionne, setEmployeSelectionne] = useState('')
   const personne = estAdmin && employeSelectionne
     ? employes?.find(e => String(e.id) === employeSelectionne) ?? employe
@@ -196,7 +197,7 @@ export function EcranPunch() {
     }
     return null
   }, [punchs])
-  const employeurSelectionne = employeurActif ?? employeur
+  const employeurSelectionne = estSousAdmin ? 'best' : (employeurActif ?? employeur)
   const punchsEmployeur = useMemo(() => (punchs ?? []).filter(p => p.employeur === employeurSelectionne), [punchs, employeurSelectionne])
   const jobsEmployeur = useMemo(() => (jobs ?? []).filter(j => (j.employeur ?? 'best') === employeurSelectionne), [jobs, employeurSelectionne])
   const etat = useMemo(() => calculerEtat(punchsEmployeur), [punchsEmployeur])
@@ -213,6 +214,7 @@ export function EcranPunch() {
 
   async function punch(type: PunchType, jobChoisi?: Id | null) {
     if (!personne || occupe) return
+    if (estSousAdmin && employeurSelectionne !== 'best') { setErreur('Nathalie peut puncher uniquement pour B.E.S.T. Terrain.'); return }
     setOccupe(true)
     setErreur(null)
     try {
@@ -294,7 +296,7 @@ export function EcranPunch() {
       <section className="rounded-2xl border border-border bg-card p-4">
         <p className="mb-2 text-sm font-semibold">Employeur</p>
         <div className="grid grid-cols-2 gap-2">
-          {(Object.keys(EMPLOYEURS) as Employeur[]).map(e => <button key={e} type="button" disabled={employeurActif !== null && employeurActif !== e}
+          {(estSousAdmin ? ['best'] as Employeur[] : Object.keys(EMPLOYEURS) as Employeur[]).map(e => <button key={e} type="button" disabled={employeurActif !== null && employeurActif !== e}
             onClick={() => { setEmployeur(e); setJobArrivee(''); setNouveauJob('') }}
             className={cn('min-h-16 rounded-xl border-2 p-2 text-sm font-bold', employeurSelectionne === e ? 'border-primary bg-primary/15' : 'border-border', employeurActif && employeurActif !== e && 'opacity-40')}>
             {EMPLOYEURS[e]}
