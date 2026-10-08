@@ -89,6 +89,7 @@ export function AdminPunchs() {
     if (employe == null) return setErreur('Choisissez un employé.')
     if (!brouillon.moment) return setErreur('Indiquez la date et l’heure.')
     if (!brouillon.job_id) return setErreur('Choisissez un job pour identifier l’employeur.')
+    if (restreint && jobs?.find(j => String(j.id) === brouillon.job_id)?.employeur !== 'best') return setErreur('Accès limité aux punchs B.E.S.T. Terrain.')
     setEnvoi(true)
     setErreur(null)
     try {

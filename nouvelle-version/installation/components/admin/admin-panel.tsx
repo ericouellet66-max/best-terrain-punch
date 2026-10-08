@@ -50,13 +50,13 @@ export function AdminPanel() {
         ))}
       </div>
       <div role="tabpanel">
-        {onglet === 'direct' && <AdminDirect />}
-        {onglet === 'notifications' && <AdminNotifications />}
-        {onglet === 'photos' && <AdminPhotos />}
+        {onglet === 'direct' && !restreint && <AdminDirect />}
+        {onglet === 'notifications' && !restreint && <AdminNotifications />}
+        {onglet === 'photos' && !restreint && <AdminPhotos />}
         {onglet === 'punchs' && <AdminPunchs />}
         {onglet === 'heures' && <AdminHeures />}
         {onglet === 'jobs' && !restreint && <AdminJobs />}
-        {onglet === 'employes' && <AdminEmployes />}
+        {onglet === 'employes' && !restreint && <AdminEmployes />}
       </div>
     </div>
   )

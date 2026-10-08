@@ -95,7 +95,7 @@ export function Reglages() {
         <p className="text-lg font-semibold">{employe?.nom}</p>
         <p className="text-sm text-muted-foreground">{session?.user.email}</p>
         <p className="mt-1 text-xs uppercase tracking-wide text-primary">
-          {employe?.role === 'admin' ? 'Administrateur' : 'Employé'}
+          {employe?.role === 'admin' ? 'Administrateur' : employe?.role === 'sous_admin' ? 'Sous-administratrice (heures)' : 'Employé'}
         </p>
       </section>
 
