@@ -1,0 +1,9 @@
+CORRECTION B.E.S.T. / FERME / BRYAN / SAM
+
+1. IMPORTANT : avant de déployer, ouvrir Supabase > SQL Editor et exécuter le fichier supabase/migration-ferme-notes.sql. Cette migration conserve les jobs et punchs existants, et affecte les anciens jobs à B.E.S.T.
+2. Dans Administration > Jobs, ouvrir chaque job de la ferme et changer son Employeur à Ferme Denis St-Pierre. Les anciens jobs sont B.E.S.T. par défaut.
+3. Déployer ensuite cette version du code via GitHub/Codespaces.
+4. Vérifier que les jobs sont actifs.
+5. Éric, Bryan et Sam peuvent sélectionner B.E.S.T. ou Ferme avant de commencer un quart. Pendant un quart actif, il faut le terminer avant de changer d’employeur.
+
+Corrections : messages d’erreur de chargement des jobs, détection des jobs par employeur, réinitialisation du choix lors du changement d’employé, verrouillage pendant un quart actif seulement.
