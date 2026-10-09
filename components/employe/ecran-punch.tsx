@@ -224,11 +224,16 @@ export function EcranPunch() {
       const job = jobChoisi ?? etatFrais.jobId
       if (job == null) throw new Error('Choisissez d’abord sur quel job vous travaillez.')
 
-      const gps = await obtenirPositionGPS()
+      // Le refus du GPS ne doit pas empêcher un employé de puncher.
+      const gps = await obtenirPositionGPS().catch(() => null)
+      const noteAdmin = estAdmin && String(personne.id) !== String(employe?.id)
+        ? `Punch effectué par administrateur ${employe?.nom ?? session?.user.email ?? ""}`
+        : null
+      const noteGPS = gps ? null : 'Localisation GPS indisponible ou refusée'
       const enregistre = await creerPunch({
         employe_id: personne.id, job_id: job, type, employeur: employeurSelectionne,
-        note: estAdmin && String(personne.id) !== String(employe?.id) ? `Punch effectué par administrateur ${employe?.nom ?? session?.user.email ?? ""}` : null,
-        latitude: gps.latitude, longitude: gps.longitude, precision_gps: gps.precision,
+        note: [noteAdmin, noteGPS].filter(Boolean).join(' — ') || null,
+        latitude: gps?.latitude ?? null, longitude: gps?.longitude ?? null, precision_gps: gps?.precision ?? null,
       })
       await mutate()
       navigator.vibrate?.(150)
@@ -249,16 +254,16 @@ export function EcranPunch() {
     setPhotoEnvoi(type)
     setErreur(null)
     try {
-      const gps = await obtenirPositionGPS()
+      const gps = await obtenirPositionGPS().catch(() => null)
       await enregistrerPhotoJob({
         employe_id: personne.id,
         job_id: etat.jobId,
         type,
         fichier,
         note: notePhoto,
-        latitude: gps.latitude,
-        longitude: gps.longitude,
-        precision_gps: gps.precision,
+        latitude: gps?.latitude ?? null,
+        longitude: gps?.longitude ?? null,
+        precision_gps: gps?.precision ?? null,
       })
       setPhotoChoisie(null)
       setNotePhoto('')
